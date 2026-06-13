@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UST Keyboard Only</title>
+<title>림키보드</title>
+<meta name="application-name" content="림키보드">
+<meta name="apple-mobile-web-app-title" content="림키보드">
+<meta property="og:title" content="림키보드">
+<meta name="twitter:title" content="림키보드">
 <style>
 :root{
   --bg:#ffffff;
@@ -36,6 +40,7 @@ body{
   z-index:10;
   display:flex;
   flex-direction:column;
+  align-items:center;
   gap:8px;
 }
 .position-control button{
@@ -52,13 +57,31 @@ body{
   background:var(--accent);
   border-color:var(--accent);
 }
-.position-control span{
+.position-control span,
+.insta-link span{
   position:absolute;
   width:1px;
   height:1px;
   overflow:hidden;
   clip:rect(0 0 0 0);
   white-space:nowrap;
+}
+.insta-link{
+  width:20px;
+  height:20px;
+  margin-top:6px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#121826;
+  opacity:.72;
+  transition:opacity .15s ease;
+}
+.insta-link:hover{opacity:1}
+.insta-link svg{
+  display:block;
+  width:20px;
+  height:20px;
 }
 .piano-wrap{
   width:100%;
@@ -113,6 +136,7 @@ body{
 @media (max-width: 720px){
   .position-control{right:10px;gap:7px}
   .position-control button{width:13px;height:13px}
+  .insta-link,.insta-link svg{width:18px;height:18px}
 }
 </style>
 </head>
@@ -122,6 +146,14 @@ body{
     <button type="button" data-position="top" title="상단"><span>상단</span></button>
     <button type="button" data-position="middle" title="중단"><span>중단</span></button>
     <button type="button" data-position="bottom" title="기본 위치"><span>기본 위치</span></button>
+    <a class="insta-link" href="https://www.instagram.com/lhimmusic" target="_blank" rel="noopener noreferrer" title="Instagram">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="4" y="4" width="16" height="16" rx="5" fill="none" stroke="currentColor" stroke-width="2"/>
+        <circle cx="12" cy="12" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/>
+        <circle cx="17" cy="7" r="1.2" fill="currentColor"/>
+      </svg>
+      <span>Instagram</span>
+    </a>
   </div>
   <div class="piano-wrap">
     <div class="piano-shell">
@@ -143,6 +175,8 @@ const positionButtons = [...document.querySelectorAll("[data-position]")];
 let keyEls = {};
 let clickHeld = new Set();
 let midiHeld = new Set();
+let midiSustained = new Set();
+let pedalDown = false;
 let midiInitStarted = false;
 
 function baseClass(midi){
@@ -153,22 +187,39 @@ function renderKeyState(midi){
   const el = keyEls[midi];
   if(!el) return;
   el.className = baseClass(midi);
-  if(clickHeld.has(midi) || midiHeld.has(midi)){
+  if(clickHeld.has(midi) || midiHeld.has(midi) || midiSustained.has(midi)){
     el.classList.add("active");
   }
 }
 
 function noteOn(midi, fromMidi = false){
   if(midi < MMIN || midi > MMAX) return;
-  if(fromMidi) midiHeld.add(midi);
+  if(fromMidi){
+    midiSustained.delete(midi);
+    midiHeld.add(midi);
+  }
   else clickHeld.add(midi);
   renderKeyState(midi);
 }
 
 function noteOff(midi, fromMidi = false){
-  if(fromMidi) midiHeld.delete(midi);
+  if(fromMidi){
+    midiHeld.delete(midi);
+    if(pedalDown) midiSustained.add(midi);
+    else midiSustained.delete(midi);
+  }
   else clickHeld.delete(midi);
   renderKeyState(midi);
+}
+
+function setPedal(value){
+  const nextPedalDown = value >= 64;
+  if(pedalDown === nextPedalDown) return;
+  pedalDown = nextPedalDown;
+  if(pedalDown) return;
+  const released = [...midiSustained];
+  midiSustained.clear();
+  released.forEach(renderKeyState);
 }
 
 function buildPiano(){
@@ -241,6 +292,7 @@ async function initMidiAccess(){
         const type = status & 0xf0;
         if(type === 0x90 && d2 > 0) noteOn(d1, true);
         else if(type === 0x80 || (type === 0x90 && d2 === 0)) noteOff(d1, true);
+        else if(type === 0xb0 && d1 === 64) setPedal(d2);
       };
     }
   }catch(error){
@@ -266,6 +318,7 @@ document.addEventListener("pointerdown", () => {
 
 buildPiano();
 setKeyboardPosition("bottom");
+initMidiAccess();
 </script>
 </body>
 </html>
