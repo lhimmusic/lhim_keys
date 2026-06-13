@@ -18,7 +18,6 @@
   --text:#121826;
   --accent:#121826;
   --active:#fbbf24;
-  --control-top-between-middle-bottom:calc(75vh - 2.644vw);
 }
 *{box-sizing:border-box}
 body{
@@ -33,61 +32,8 @@ body{
   min-height:100vh;
   display:flex;
   flex-direction:column;
-}
-.app.pos-top{justify-content:flex-start}
-.app.pos-middle{justify-content:center}
-.app.pos-bottom{justify-content:flex-end}
-.position-control{
-  position:fixed;
-  right:14px;
-  top:clamp(120px,var(--control-top-between-middle-bottom),calc(100vh - 120px));
-  transform:translateY(-50%);
-  z-index:10;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:8px;
-}
-.position-control button{
-  appearance:none;
-  width:14px;
-  height:14px;
-  padding:0;
-  border:1px solid #b9c0c8;
-  border-radius:999px;
-  background:#fff;
-  cursor:pointer;
-}
-.position-control button.on{
-  background:var(--accent);
-  border-color:var(--accent);
-}
-.position-control span,
-.social-link span{
-  position:absolute;
-  width:1px;
-  height:1px;
-  overflow:hidden;
-  clip:rect(0 0 0 0);
-  white-space:nowrap;
-}
-.social-link{
-  width:20px;
-  height:20px;
-  margin-top:0;
-  display:flex;
   align-items:center;
   justify-content:center;
-  color:#121826;
-  opacity:.72;
-  transition:opacity .15s ease;
-}
-.position-control .social-link:first-of-type{margin-top:6px}
-.social-link:hover{opacity:1}
-.social-link svg{
-  display:block;
-  width:20px;
-  height:20px;
 }
 .piano-wrap{
   width:100%;
@@ -139,35 +85,10 @@ body{
   background:var(--active) !important;
   box-shadow:none !important;
 }
-@media (max-width: 720px){
-  .position-control{right:10px;gap:7px}
-  .position-control button{width:13px;height:13px}
-  .social-link,.social-link svg{width:18px;height:18px}
-}
 </style>
 </head>
 <body>
-<div class="app pos-bottom" id="app">
-  <div class="position-control" aria-label="건반 위치">
-    <button type="button" data-position="top" title="상단"><span>상단</span></button>
-    <button type="button" data-position="middle" title="중단"><span>중단</span></button>
-    <button type="button" data-position="bottom" title="기본 위치"><span>기본 위치</span></button>
-    <a class="social-link" href="https://www.instagram.com/lhimmusic" target="_blank" rel="noopener noreferrer" title="Instagram">
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <rect x="4" y="4" width="16" height="16" rx="5" fill="none" stroke="currentColor" stroke-width="2"/>
-        <circle cx="12" cy="12" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/>
-        <circle cx="17" cy="7" r="1.2" fill="currentColor"/>
-      </svg>
-      <span>Instagram</span>
-    </a>
-    <a class="social-link" href="https://www.youtube.com/@lhimhuh" target="_blank" rel="noopener noreferrer" title="YouTube">
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M21 8.2a3 3 0 0 0-2.1-2.1C17.1 5.6 12 5.6 12 5.6s-5.1 0-6.9.5A3 3 0 0 0 3 8.2a31 31 0 0 0 0 7.6 3 3 0 0 0 2.1 2.1c1.8.5 6.9.5 6.9.5s5.1 0 6.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 0-7.6Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-        <path d="m10 9 5 3-5 3V9Z" fill="currentColor"/>
-      </svg>
-      <span>YouTube</span>
-    </a>
-  </div>
+<div class="app" id="app">
   <div class="piano-wrap">
     <div class="piano-shell">
       <div class="piano" id="piano"></div>
@@ -181,9 +102,7 @@ const MMAX = 108;
 const IS_BLACK = [0,1,0,1,0,0,1,0,1,0,1,0].map(Boolean);
 const BLACK_TRANSLATE = {1:-67,3:-33,6:-72,8:-50,10:-28};
 
-const app = document.getElementById("app");
 const piano = document.getElementById("piano");
-const positionButtons = [...document.querySelectorAll("[data-position]")];
 
 let keyEls = {};
 let clickHeld = new Set();
@@ -313,24 +232,11 @@ async function initMidiAccess(){
   }
 }
 
-function setKeyboardPosition(position){
-  app.classList.remove("pos-top","pos-middle","pos-bottom");
-  app.classList.add(`pos-${position}`);
-  positionButtons.forEach((button) => {
-    button.classList.toggle("on", button.dataset.position === position);
-  });
-}
-
-positionButtons.forEach((button) => {
-  button.addEventListener("click", () => setKeyboardPosition(button.dataset.position));
-});
-
 document.addEventListener("pointerdown", () => {
   initMidiAccess();
 }, {once:true});
 
 buildPiano();
-setKeyboardPosition("bottom");
 initMidiAccess();
 </script>
 </body>
