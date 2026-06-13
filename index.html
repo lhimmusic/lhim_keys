@@ -3,11 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>림키보드</title>
-<meta name="application-name" content="림키보드">
-<meta name="apple-mobile-web-app-title" content="림키보드">
-<meta property="og:title" content="림키보드">
-<meta name="twitter:title" content="림키보드">
+<title>Lhim Keys</title>
+<meta name="application-name" content="Lhim Keys">
+<meta name="apple-mobile-web-app-title" content="Lhim Keys">
+<meta property="og:title" content="Lhim Keys">
+<meta name="twitter:title" content="Lhim Keys">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="favicon.png">
 <style>
 :root{
   --bg:#ffffff;
@@ -58,7 +60,7 @@ body{
   border-color:var(--accent);
 }
 .position-control span,
-.insta-link span{
+.social-link span{
   position:absolute;
   width:1px;
   height:1px;
@@ -66,7 +68,7 @@ body{
   clip:rect(0 0 0 0);
   white-space:nowrap;
 }
-.insta-link{
+.social-link{
   width:20px;
   height:20px;
   margin-top:6px;
@@ -77,8 +79,8 @@ body{
   opacity:.72;
   transition:opacity .15s ease;
 }
-.insta-link:hover{opacity:1}
-.insta-link svg{
+.social-link:hover{opacity:1}
+.social-link svg{
   display:block;
   width:20px;
   height:20px;
@@ -136,7 +138,7 @@ body{
 @media (max-width: 720px){
   .position-control{right:10px;gap:7px}
   .position-control button{width:13px;height:13px}
-  .insta-link,.insta-link svg{width:18px;height:18px}
+  .social-link,.social-link svg{width:18px;height:18px}
 }
 </style>
 </head>
@@ -146,13 +148,20 @@ body{
     <button type="button" data-position="top" title="상단"><span>상단</span></button>
     <button type="button" data-position="middle" title="중단"><span>중단</span></button>
     <button type="button" data-position="bottom" title="기본 위치"><span>기본 위치</span></button>
-    <a class="insta-link" href="https://www.instagram.com/lhimmusic" target="_blank" rel="noopener noreferrer" title="Instagram">
+    <a class="social-link" href="https://www.instagram.com/lhimmusic" target="_blank" rel="noopener noreferrer" title="Instagram">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <rect x="4" y="4" width="16" height="16" rx="5" fill="none" stroke="currentColor" stroke-width="2"/>
         <circle cx="12" cy="12" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/>
         <circle cx="17" cy="7" r="1.2" fill="currentColor"/>
       </svg>
       <span>Instagram</span>
+    </a>
+    <a class="social-link" href="https://www.youtube.com/@lhimhuh" target="_blank" rel="noopener noreferrer" title="YouTube">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M21 8.2a3 3 0 0 0-2.1-2.1C17.1 5.6 12 5.6 12 5.6s-5.1 0-6.9.5A3 3 0 0 0 3 8.2a31 31 0 0 0 0 7.6 3 3 0 0 0 2.1 2.1c1.8.5 6.9.5 6.9.5s5.1 0 6.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 0-7.6Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        <path d="m10 9 5 3-5 3V9Z" fill="currentColor"/>
+      </svg>
+      <span>YouTube</span>
     </a>
   </div>
   <div class="piano-wrap">
