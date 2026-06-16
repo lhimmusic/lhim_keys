@@ -92,17 +92,27 @@ const soundPanel=document.getElementById('soundPanel');
 
 let keyEls={},clickHeld=new Set(),midiHeld=new Set(),midiSustained=new Set(),pedalSustained=new Set();
 let pedalDown=false,sustainEnabled=false,midiInitStarted=false;
-let soundEnabled=false,audioCtx=null,currentSoundId='piano';
+let soundEnabled=false,audioCtx=null,currentSoundId='piano',masterNode=null;
 const activeNodes={};
 function getCtx(){
   if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
   if(audioCtx.state==='suspended')audioCtx.resume();
   return audioCtx;
 }
+function getMaster(ctx){
+  if(!masterNode){
+    const comp=ctx.createDynamicsCompressor();
+    comp.threshold.value=-18;comp.knee.value=20;comp.ratio.value=4;comp.attack.value=0.003;comp.release.value=0.15;
+    const g=ctx.createGain();g.gain.value=0.5;
+    comp.connect(g);g.connect(ctx.destination);
+    masterNode=comp;
+  }
+  return masterNode;
+}
 function midiToFreq(m){return 440*Math.pow(2,(m-69)/12);}
 
 function mkPiano(ctx,freq,t){
-  const g=ctx.createGain();g.connect(ctx.destination);
+  const g=ctx.createGain();g.connect(getMaster(ctx));
   const oscs=[];
   [[0,'triangle'],[-4,'sine'],[4,'sine']].forEach(([d,tp])=>{
     const o=ctx.createOscillator();o.type=tp;o.frequency.value=freq;o.detune.value=d;
@@ -115,7 +125,7 @@ function mkPiano(ctx,freq,t){
 }
 
 function mkEPiano(ctx,freq,t){
-  const g=ctx.createGain();g.connect(ctx.destination);
+  const g=ctx.createGain();g.connect(getMaster(ctx));
   const mod=ctx.createOscillator();mod.frequency.value=freq*2;
   const modG=ctx.createGain();modG.gain.value=freq*0.7;
   mod.connect(modG);mod.start(t);
@@ -129,7 +139,7 @@ function mkEPiano(ctx,freq,t){
 }
 
 function mkStrings(ctx,freq,t){
-  const g=ctx.createGain();g.connect(ctx.destination);
+  const g=ctx.createGain();g.connect(getMaster(ctx));
   const f=ctx.createBiquadFilter();f.type='lowpass';f.frequency.value=1000;f.Q.value=0.4;f.connect(g);
   const oscs=[];
   [0,-5,5,-10,10].forEach(d=>{
@@ -141,7 +151,7 @@ function mkStrings(ctx,freq,t){
 }
 
 function mkOrgan(ctx,freq,t){
-  const g=ctx.createGain();g.connect(ctx.destination);
+  const g=ctx.createGain();g.connect(getMaster(ctx));
   const oscs=[];
   [[1,0.4],[2,0.3],[3,0.15],[4,0.1],[6,0.05]].forEach(([r,a])=>{
     const og=ctx.createGain();og.gain.value=a;og.connect(g);
@@ -153,7 +163,7 @@ function mkOrgan(ctx,freq,t){
 }
 
 function mkLead(ctx,freq,t){
-  const g=ctx.createGain();g.connect(ctx.destination);
+  const g=ctx.createGain();g.connect(getMaster(ctx));
   const f=ctx.createBiquadFilter();f.type='lowpass';f.connect(g);
   f.frequency.setValueAtTime(freq*10,t);f.frequency.exponentialRampToValueAtTime(freq*2,t+0.25);
   const oscs=[];
@@ -168,7 +178,7 @@ function mkLead(ctx,freq,t){
 }
 
 function mkBass(ctx,freq,t){
-  const g=ctx.createGain();g.connect(ctx.destination);
+  const g=ctx.createGain();g.connect(getMaster(ctx));
   const f=ctx.createBiquadFilter();f.type='lowpass';f.connect(g);
   f.frequency.setValueAtTime(freq*8,t);f.frequency.exponentialRampToValueAtTime(400,t+0.08);
   const o=ctx.createOscillator();o.type='square';o.frequency.value=freq;o.connect(f);o.start(t);
@@ -180,7 +190,7 @@ function mkBass(ctx,freq,t){
 
 
 function mkFlute(ctx,freq,t){
-  const g=ctx.createGain();g.connect(ctx.destination);
+  const g=ctx.createGain();g.connect(getMaster(ctx));
   const o=ctx.createOscillator();o.type='sine';o.frequency.value=freq;o.connect(g);o.start(t);
   const nBuf=ctx.createBuffer(1,ctx.sampleRate,ctx.sampleRate);
   const nd=nBuf.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;
@@ -200,7 +210,7 @@ function noiseBuffer(ctx,dur){
 }
 function mkDrums(ctx,freq,t,m){
   m=m-12;
-  const g=ctx.createGain();g.connect(ctx.destination);
+  const g=ctx.createGain();g.connect(getMaster(ctx));
   const noop=()=>{};
   if(m===35||m===36){
     const o=ctx.createOscillator();o.type='sine';o.frequency.setValueAtTime(160,t);o.frequency.exponentialRampToValueAtTime(40,t+0.07);
