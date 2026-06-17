@@ -8,9 +8,8 @@
 :root{--bg:#ffffff;--text:#121826;--active:#fbbf24}
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden}
-.app{touch-action:none}
 body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text)}
-.app{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+.app{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;overflow:hidden;touch-action:none}
 .midi-notice{display:none;width:100%;background:#fef3c7;border-bottom:1px solid #f59e0b;color:#92400e;font:500 11px/1.4 system-ui,sans-serif;text-align:center;padding:7px 16px}
 .midi-notice.visible{display:block}
 
@@ -40,8 +39,7 @@ body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text)}
 .s-row:hover{background:#f8fafc}
 .s-row.sel{background:#fffbeb;color:#1e293b}
 
-.piano-wrap{position:relative;width:var(--pw-width,100%);background:#fff;margin-top:var(--pw-top,max(112px,calc(50vh - 56px - 4.04vw - 30px)));transition:margin-top 0s}
-.app{overflow:hidden}
+.piano-wrap{position:relative;width:100%;background:#fff;margin-top:var(--pw-top,max(112px,calc(50vh - 56px - 4.04vw - 30px)))}
 .piano{position:relative;width:100%;aspect-ratio:52/4.2;overflow:hidden;background:#fff}
 .piano.tall{aspect-ratio:52/5.5}
 .piano::before{content:"";position:absolute;inset:0 0 auto 0;height:1px;background:#1e293b;z-index:5;pointer-events:none}
@@ -50,13 +48,11 @@ body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text)}
 .white.first-white{border-left:1px solid #1e293b}
 .black{z-index:2;background:#1e293b;border:1px solid #1e293b;border-top:none;height:62%}
 .piano.tall .black{height:65%}
-.white.active,.black.active{background:var(--active)!important;box-shadow:none!important}
+.white.active,.black.active{background:var(--active)!important}
 
 .help-btn{position:absolute;right:18px;bottom:calc(100% + 106px);z-index:10;appearance:none;border:none;background:none;color:#cbd5e1;width:22px;height:22px;font:700 14px/1 system-ui;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:color .12s}
 .help-btn:hover{color:#1e293b}
 .piano-wrap.controls-below .help-btn{bottom:auto;top:calc(100% + 106px)}
-/* controls-below: PIANO(10) SOUND(34) SUSTAIN(58) KEYSHAPE(82) HELP(106) */
-
 .help-panel{position:fixed;z-index:40;background:#fff;border:1px solid #1e293b;padding:14px 16px;display:none;min-width:190px}
 .help-panel.open{display:block}
 .help-row{display:flex;gap:10px;margin-bottom:6px;align-items:baseline}
@@ -69,7 +65,6 @@ body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text)}
 <div class="app">
   <div class="midi-notice" id="midiNotice">이 브라우저는 MIDI를 지원하지 않습니다. MIDI 기기를 연결하려면 Chrome을 사용해 주세요.</div>
   <div class="piano-wrap">
-
     <div class="sound-pick-wrap">
       <button class="sound-pick-btn" id="soundPickBtn" type="button">
         <span class="sound-pick-name" id="soundPickName">PIANO</span>
@@ -77,22 +72,16 @@ body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text)}
       </button>
       <div class="sound-panel" id="soundPanel"></div>
     </div>
-
     <button class="toggle-button keyshape-button" id="keyShapeButton" type="button" aria-pressed="false">
-      <span class="toggle-label" id="keyShapeLabel">KEY SHAPE</span>
-      <span class="toggle-switch" aria-hidden="true"></span>
+      <span class="toggle-label">KEY SHAPE</span><span class="toggle-switch" aria-hidden="true"></span>
     </button>
     <button class="toggle-button sound-button" id="soundButton" type="button" aria-pressed="false">
-      <span class="toggle-label" id="soundLabel">SOUND</span>
-      <span class="toggle-switch" aria-hidden="true"></span>
+      <span class="toggle-label">SOUND</span><span class="toggle-switch" aria-hidden="true"></span>
     </button>
     <button class="toggle-button sustain-button" id="sustainButton" type="button" aria-pressed="false">
-      <span class="toggle-label" id="sustainLabel">SUSTAIN</span>
-      <span class="toggle-switch" aria-hidden="true"></span>
+      <span class="toggle-label">SUSTAIN</span><span class="toggle-switch" aria-hidden="true"></span>
     </button>
-
     <button class="help-btn" id="helpBtn" type="button" aria-label="도움말">?</button>
-
     <div class="help-panel" id="helpPanel">
       <div class="help-row"><span class="help-key">PIANO</span><span class="help-desc">악기 선택</span></div>
       <div class="help-row"><span class="help-key">SOUND</span><span class="help-desc">소리 ON / OFF</span></div>
@@ -101,7 +90,6 @@ body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text)}
       <div class="help-row"><span class="help-key">휠 스크롤</span><span class="help-desc">건반 위치 이동</span></div>
       <div class="help-row"><span class="help-key">MIDI</span><span class="help-desc">Chrome 자동 인식</span></div>
     </div>
-
     <div class="piano" id="piano"></div>
   </div>
 </div>
@@ -111,10 +99,8 @@ const IS_BLACK=[0,1,0,1,0,0,1,0,1,0,1,0].map(Boolean);
 const BLACK_TRANSLATE={1:-67,3:-33,6:-72,8:-50,10:-28};
 const piano=document.getElementById('piano');
 const sustainButton=document.getElementById('sustainButton');
-const sustainLabel=document.getElementById('sustainLabel');
 const keyShapeButton=document.getElementById('keyShapeButton');
 const soundButton=document.getElementById('soundButton');
-const soundLabel=document.getElementById('soundLabel');
 const soundPickBtn=document.getElementById('soundPickBtn');
 const soundPickName=document.getElementById('soundPickName');
 const soundPanel=document.getElementById('soundPanel');
@@ -123,18 +109,15 @@ let keyEls={},clickHeld=new Set(),midiHeld=new Set(),midiSustained=new Set(),ped
 let pedalDown=false,sustainEnabled=false,midiInitStarted=false;
 let soundEnabled=false,audioCtx=null,currentSoundId='piano',masterNode=null;
 const activeNodes={};
+
 function getCtx(){
   if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
   if(audioCtx.state==='suspended')audioCtx.resume();
   return audioCtx;
 }
-function unlockAudio(){
-  getCtx();
-  document.removeEventListener('touchstart',unlockAudio);
-  document.removeEventListener('pointerdown',unlockAudio);
-}
-document.addEventListener('touchstart',unlockAudio,{once:true,passive:true});
-document.addEventListener('pointerdown',unlockAudio,{once:true,passive:true});
+document.addEventListener('touchstart',()=>getCtx(),{once:true,passive:true});
+document.addEventListener('pointerdown',()=>getCtx(),{once:true,passive:true});
+
 function getMaster(ctx){
   if(!masterNode){
     const comp=ctx.createDynamicsCompressor();
@@ -224,7 +207,6 @@ function mkBass(ctx,freq,t){
   return()=>{clearTimeout(tid);const n=ctx.currentTime;g.gain.cancelScheduledValues(n);g.gain.setValueAtTime(Math.max(0.00001,g.gain.value),n);g.gain.exponentialRampToValueAtTime(0.0001,n+0.06);setTimeout(()=>{try{o.stop()}catch(e){}},130);};
 }
 
-
 function mkFlute(ctx,freq,t){
   const g=ctx.createGain();g.connect(getMaster(ctx));
   const o=ctx.createOscillator();o.type='sine';o.frequency.value=freq;o.connect(g);o.start(t);
@@ -290,7 +272,7 @@ function mkDrums(ctx,freq,t,m){
     g.gain.setValueAtTime(1,t);setTimeout(()=>{try{ns.stop()}catch(e){}},120);return noop;
   }
   if(m===46){
-    const ns=ctx.createBufferSource();ns.buffer=noiseBuffer(ctx,1);ns.loop=false;
+    const ns=ctx.createBufferSource();ns.buffer=noiseBuffer(ctx,1);
     const nf=ctx.createBiquadFilter();nf.type='highpass';nf.frequency.value=7000;
     const ng=ctx.createGain();ng.gain.setValueAtTime(0.32,t);ng.gain.exponentialRampToValueAtTime(0.0001,t+0.55);
     ns.connect(nf);nf.connect(ng);ng.connect(g);ns.start(t);
@@ -320,7 +302,7 @@ function mkDrums(ctx,freq,t,m){
     const o=ctx.createOscillator();o.type='sine';
     o.frequency.setValueAtTime(p*1.6,t);o.frequency.exponentialRampToValueAtTime(p,t+0.08);
     o.connect(g);o.start(t);
-const ns=ctx.createBufferSource();ns.buffer=noiseBuffer(ctx,0.04);
+    const ns=ctx.createBufferSource();ns.buffer=noiseBuffer(ctx,0.04);
     const nf=ctx.createBiquadFilter();nf.type='bandpass';nf.frequency.value=p*2;nf.Q.value=2;
     const ng=ctx.createGain();ng.gain.setValueAtTime(0.15,t);ng.gain.exponentialRampToValueAtTime(0.0001,t+0.04);
     ns.connect(nf);nf.connect(ng);ng.connect(g);ns.start(t);
@@ -341,19 +323,11 @@ const ns=ctx.createBufferSource();ns.buffer=noiseBuffer(ctx,0.04);
 }
 
 const CATALOG=[
-  {id:'piano',   name:'Piano'},
-  {id:'epiano',  name:'E.Piano'},
-  {id:'strings', name:'Strings'},
-  {id:'drums',   name:'Drums'},
-  {id:'bass',    name:'Bass'},
-  {id:'organ',   name:'Organ'},
-  {id:'lead',    name:'Lead'},
-  {id:'flute',   name:'Flute'},
+  {id:'piano',name:'Piano'},{id:'epiano',name:'E.Piano'},{id:'strings',name:'Strings'},
+  {id:'drums',name:'Drums'},{id:'bass',name:'Bass'},{id:'organ',name:'Organ'},
+  {id:'lead',name:'Lead'},{id:'flute',name:'Flute'},
 ];
-const FN_MAP={
-  piano:mkPiano,epiano:mkEPiano,strings:mkStrings,drums:mkDrums,
-  bass:mkBass,organ:mkOrgan,lead:mkLead,flute:mkFlute,
-};
+const FN_MAP={piano:mkPiano,epiano:mkEPiano,strings:mkStrings,drums:mkDrums,bass:mkBass,organ:mkOrgan,lead:mkLead,flute:mkFlute};
 const NAME_MAP={};
 
 CATALOG.forEach(({id,name})=>{
@@ -361,8 +335,7 @@ CATALOG.forEach(({id,name})=>{
   const row=document.createElement('button');
   row.type='button';row.className='s-row';row.dataset.id=id;
   if(id==='piano')row.classList.add('sel');
-  const nm=document.createElement('span');nm.className='s-name';nm.textContent=name;
-  row.appendChild(nm);
+  row.textContent=name;
   row.addEventListener('click',()=>{selectSound(id);closePanel();});
   soundPanel.appendChild(row);
 });
@@ -372,7 +345,7 @@ function selectSound(id){
   soundPickName.textContent=NAME_MAP[id].toUpperCase();
   document.querySelectorAll('.s-row').forEach(r=>r.classList.toggle('sel',r.dataset.id===id));
 }
-
+function closePanel(){soundPanel.classList.remove('open');}
 soundPickBtn.addEventListener('click',e=>{
   e.stopPropagation();
   const rect=soundPickBtn.getBoundingClientRect();
@@ -382,21 +355,18 @@ soundPickBtn.addEventListener('click',e=>{
 });
 document.addEventListener('click',closePanel);
 soundPanel.addEventListener('click',e=>e.stopPropagation());
-function closePanel(){soundPanel.classList.remove('open');}
 
 function playNote(m){
   if(!soundEnabled)return;
   stopNote(m);
-  const ctx=getCtx();const t=ctx.currentTime+0.005;
-  const stopFn=FN_MAP[currentSoundId](ctx,midiToFreq(m),t,m);
-  activeNodes[m]={stopFn};
+  const ctx=getCtx(),t=ctx.currentTime+0.005;
+  activeNodes[m]={stopFn:FN_MAP[currentSoundId](ctx,midiToFreq(m),t,m)};
 }
 function stopNote(m){
   const n=activeNodes[m];if(!n)return;
   try{n.stopFn();}catch(e){}
   delete activeNodes[m];
 }
-
 function setSoundEnabled(v){
   soundEnabled=v;
   soundButton.classList.toggle('active',v);
@@ -411,7 +381,7 @@ function setKeyShapeTall(v){
 }
 keyShapeButton.addEventListener('click',()=>setKeyShapeTall(!piano.classList.contains('tall')));
 
-function baseClass(m){return IS_BLACK[m%12]?'black':'white'}
+function baseClass(m){return IS_BLACK[m%12]?'black':'white';}
 function renderKeyState(m){
   const el=keyEls[m];if(!el)return;
   el.className=baseClass(m);
@@ -427,14 +397,8 @@ function noteOn(m,fromMidi=false){
 function noteOff(m,fromMidi=false){
   if(fromMidi){
     midiHeld.delete(m);
-    if(pedalDown){
-      pedalSustained.add(m);
-      if(sustainEnabled)midiSustained.add(m);
-    }else{
-      pedalSustained.delete(m);
-      midiSustained.delete(m);
-      if(!clickHeld.has(m))stopNote(m);
-    }
+    if(pedalDown){pedalSustained.add(m);if(sustainEnabled)midiSustained.add(m);}
+    else{pedalSustained.delete(m);midiSustained.delete(m);if(!clickHeld.has(m))stopNote(m);}
   }else{
     clickHeld.delete(m);
     if(!midiHeld.has(m)&&!pedalSustained.has(m))stopNote(m);
@@ -456,10 +420,57 @@ function setSustainEnabled(v){
 function setPedal(v){
   const next=v>=64;if(pedalDown===next)return;
   pedalDown=next;
-  if(pedalDown)return;
-  releaseSustainedNotes();
+  if(!pedalDown)releaseSustainedNotes();
 }
 sustainButton.addEventListener('click',()=>setSustainEnabled(!sustainEnabled));
+
+let pointerMidiMap={},pointerStartY={},pointerDragging={};
+const DRAG_THRESHOLD=8;
+function midiFromPoint(x,y){
+  const bl=piano.lastElementChild;
+  for(const el of bl.children){const r=el.getBoundingClientRect();if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom)return Number(el.dataset.midi);}
+  for(let m=MMIN;m<=MMAX;m++){if(IS_BLACK[m%12])continue;const el=keyEls[m];if(!el)continue;const r=el.getBoundingClientRect();if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom)return m;}
+  return null;
+}
+function wirePointer(el,m){
+  el.dataset.midi=m;
+  el.addEventListener('pointerdown',e=>{
+    e.preventDefault();
+    piano.setPointerCapture(e.pointerId);
+    pointerMidiMap[e.pointerId]=m;
+    pointerStartY[e.pointerId]=e.clientY;
+    pointerDragging[e.pointerId]=false;
+    noteOn(m,false);
+  });
+}
+piano.addEventListener('pointermove',e=>{
+  if(!(e.buttons&1))return;
+  const pid=e.pointerId;
+  if(pointerDragging[pid]){
+    const dy=e.clientY-pointerStartY[pid];
+    pointerStartY[pid]=e.clientY;
+    if(window.applyPianoOffset)applyPianoOffset(dy);
+    return;
+  }
+  const dy=Math.abs(e.clientY-(pointerStartY[pid]||e.clientY));
+  if(dy>DRAG_THRESHOLD){
+    pointerDragging[pid]=true;
+    pointerStartY[pid]=e.clientY;
+    const prev=pointerMidiMap[pid];
+    if(prev!==undefined)noteOff(prev,false);
+    return;
+  }
+  const prev=pointerMidiMap[pid];if(prev===undefined)return;
+  const next=midiFromPoint(e.clientX,e.clientY);if(next===null||next===prev)return;
+  noteOff(prev,false);pointerMidiMap[pid]=next;noteOn(next,false);
+});
+function cleanPointer(e){
+  const pid=e.pointerId;
+  if(!pointerDragging[pid]){const m=pointerMidiMap[pid];if(m!==undefined)noteOff(m,false);}
+  delete pointerMidiMap[pid];delete pointerStartY[pid];delete pointerDragging[pid];
+}
+piano.addEventListener('pointerup',cleanPointer);
+piano.addEventListener('pointercancel',cleanPointer);
 
 function buildPiano(){
   const blackLayer=document.createElement('div');
@@ -486,26 +497,6 @@ function buildPiano(){
   piano.appendChild(blackLayer);
 }
 
-let pointerMidiMap={};
-function midiFromPoint(x,y){
-  const bl=piano.lastElementChild;
-  for(const el of bl.children){const r=el.getBoundingClientRect();if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom)return Number(el.dataset.midi);}
-  for(let m=MMIN;m<=MMAX;m++){if(IS_BLACK[m%12])continue;const el=keyEls[m];if(!el)continue;const r=el.getBoundingClientRect();if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom)return m;}
-  return null;
-}
-function wirePointer(el,m){
-  el.dataset.midi=m;
-  el.addEventListener('pointerdown',e=>{e.preventDefault();piano.setPointerCapture(e.pointerId);pointerMidiMap[e.pointerId]=m;noteOn(m,false);});
-}
-piano.addEventListener('pointermove',e=>{
-  if(!(e.buttons&1))return;
-  const prev=pointerMidiMap[e.pointerId];if(prev===undefined)return;
-  const next=midiFromPoint(e.clientX,e.clientY);if(next===null||next===prev)return;
-  noteOff(prev,false);pointerMidiMap[e.pointerId]=next;noteOn(next,false);
-});
-piano.addEventListener('pointerup',e=>{const m=pointerMidiMap[e.pointerId];if(m!==undefined){noteOff(m,false);delete pointerMidiMap[e.pointerId];}});
-piano.addEventListener('pointercancel',e=>{const m=pointerMidiMap[e.pointerId];if(m!==undefined){noteOff(m,false);delete pointerMidiMap[e.pointerId];}});
-
 async function initMidiAccess(){
   if(midiInitStarted)return;midiInitStarted=true;
   try{
@@ -529,71 +520,54 @@ helpBtn.addEventListener('click',e=>{
   const isOpen=helpPanel.classList.contains('open');
   if(isOpen){helpPanel.classList.remove('open');return;}
   const r=helpBtn.getBoundingClientRect();
-  const ph=helpPanel.offsetHeight||120;
-  const spaceAbove=r.top;
-  const spaceBelow=window.innerHeight-r.bottom;
-  if(spaceAbove>spaceBelow){
-    helpPanel.style.top=(r.top-ph-6)+'px';
-  } else {
-    helpPanel.style.top=(r.bottom+6)+'px';
-  }
   helpPanel.style.right=(window.innerWidth-r.right)+'px';
   helpPanel.style.left='auto';
   helpPanel.classList.add('open');
-  const ph2=helpPanel.offsetHeight;
-  if(spaceAbove>spaceBelow){helpPanel.style.top=(r.top-ph2-6)+'px';}
+  const ph=helpPanel.offsetHeight;
+  const spaceAbove=r.top,spaceBelow=window.innerHeight-r.bottom;
+  helpPanel.style.top=(spaceAbove>spaceBelow?r.top-ph-6:r.bottom+6)+'px';
 });
 document.addEventListener('click',()=>helpPanel.classList.remove('open'));
 document.addEventListener('keydown',e=>{if(e.key==='Escape')helpPanel.classList.remove('open');});
 
 buildPiano();
-if(!navigator.requestMIDIAccess){document.getElementById('midiNotice').classList.add('visible');}
-else{initMidiAccess();}
+if(!navigator.requestMIDIAccess)document.getElementById('midiNotice').classList.add('visible');
+else initMidiAccess();
 
 (function(){
   const wrap=document.querySelector('.piano-wrap');
-  const app=document.querySelector('.app');
   let offsetY=null;
-  function clamp(v,min,max){return Math.min(max,Math.max(min,v));}
+  function clamp(v,a,b){return Math.min(b,Math.max(a,v));}
   function getDefaultTop(){
     const vw=window.innerWidth,vh=window.innerHeight;
-    const pianoH=wrap.offsetHeight;
-    const def=Math.max(112,vh/2-56-(4.04*vw/100)-85);
-    return def;
+    return Math.max(112,vh/2-56-(4.04*vw/100)-85);
   }
-  const CONTROLS_HEIGHT=100;
   function applyOffset(v){
-    const vh=window.innerHeight;
-    const pianoH=wrap.offsetHeight;
-    const max=vh-pianoH;
-    const min=0;
-    const clamped=clamp(v,min,Math.max(min,max));
+    const clamped=clamp(v,0,Math.max(0,window.innerHeight-wrap.offsetHeight));
     wrap.style.setProperty('--pw-top',clamped+'px');
     offsetY=clamped;
-    wrap.classList.toggle('controls-below',clamped<CONTROLS_HEIGHT);
+    wrap.classList.toggle('controls-below',clamped<100);
   }
+  window.applyPianoOffset=function(dy){
+    if(offsetY===null)offsetY=getDefaultTop();
+    applyOffset(offsetY+dy);
+  };
   window.addEventListener('wheel',function(e){
     e.preventDefault();
     if(offsetY===null)offsetY=getDefaultTop();
     applyOffset(offsetY-e.deltaY);
   },{passive:false});
-
-  const pianoEl=document.getElementById('piano');
   const appEl=document.querySelector('.app');
-
-  // mouse wheel already handled above
-  // touch drag for mobile
   let tStartY=null,tOffsetStart=null;
   appEl.addEventListener('touchstart',function(e){
-    if(pianoEl.contains(e.target))return;
+    if(piano.contains(e.target))return;
     tStartY=e.touches[0].clientY;
     tOffsetStart=offsetY!==null?offsetY:getDefaultTop();
   },{passive:false});
   appEl.addEventListener('touchmove',function(e){
     if(tStartY===null)return;
     e.preventDefault();
-    const dy=e.touches[0].clientY-tStartY;
-    applyOffset(tOffsetStart+dy);
+    applyOffset(tOffsetStart+(e.touches[0].clientY-tStartY));
   },{passive:false});
   appEl.addEventListener('touchend',function(){tStartY=null;},{passive:true});
 })();
