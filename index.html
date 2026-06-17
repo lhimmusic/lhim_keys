@@ -579,21 +579,23 @@ else{initMidiAccess();}
   },{passive:false});
 
   const pianoEl=document.getElementById('piano');
-  let dragId=null,dragStartY=null,dragOffsetStart=null;
-  document.addEventListener('pointerdown',function(e){
+  const appEl=document.querySelector('.app');
+
+  // mouse wheel already handled above
+  // touch drag for mobile
+  let tStartY=null,tOffsetStart=null;
+  appEl.addEventListener('touchstart',function(e){
     if(pianoEl.contains(e.target))return;
-    if(e.button!==0&&e.pointerType==='mouse')return;
-    dragId=e.pointerId;
-    dragStartY=e.clientY;
-    dragOffsetStart=offsetY!==null?offsetY:getDefaultTop();
-  });
-  document.addEventListener('pointermove',function(e){
-    if(dragId===null||e.pointerId!==dragId)return;
-    const dy=e.clientY-dragStartY;
-    applyOffset(dragOffsetStart+dy);
-  });
-  document.addEventListener('pointerup',function(e){if(e.pointerId===dragId)dragId=null;});
-  document.addEventListener('pointercancel',function(e){if(e.pointerId===dragId)dragId=null;});
+    tStartY=e.touches[0].clientY;
+    tOffsetStart=offsetY!==null?offsetY:getDefaultTop();
+  },{passive:false});
+  appEl.addEventListener('touchmove',function(e){
+    if(tStartY===null)return;
+    e.preventDefault();
+    const dy=e.touches[0].clientY-tStartY;
+    applyOffset(tOffsetStart+dy);
+  },{passive:false});
+  appEl.addEventListener('touchend',function(){tStartY=null;},{passive:true});
 })();
 </script>
 </body>
