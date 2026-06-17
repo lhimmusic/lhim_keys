@@ -13,7 +13,7 @@ body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text)}
 .midi-notice{display:none;width:100%;background:#fef3c7;border-bottom:1px solid #f59e0b;color:#92400e;font:500 11px/1.4 system-ui,sans-serif;text-align:center;padding:7px 16px}
 .midi-notice.visible{display:block}
 
-.toggle-button{position:absolute;z-index:10;appearance:none;display:flex;align-items:center;gap:8px;border:none;background:none;color:#1e293b;padding:4px 0;font:700 11px/1 system-ui,sans-serif;letter-spacing:0.04em;cursor:pointer;user-select:none}
+.toggle-button{position:absolute;z-index:10;appearance:none;display:flex;align-items:center;gap:8px;border:none;background:none;color:#1e293b;padding:4px 0;font:700 11px/1 system-ui,sans-serif;letter-spacing:0.04em;cursor:pointer;user-select:none;outline:none}
 .keyshape-button{right:18px;bottom:calc(100% + 10px)}
 .sustain-button{right:18px;bottom:calc(100% + 34px)}
 .sound-button{right:18px;bottom:calc(100% + 58px)}
@@ -50,10 +50,10 @@ body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text)}
 .piano.tall .black{height:65%}
 .white.active,.black.active{background:var(--active)!important}
 
-.help-btn{position:absolute;right:18px;bottom:calc(100% + 106px);z-index:10;appearance:none;border:none;background:none;color:#cbd5e1;width:22px;height:22px;font:700 14px/1 system-ui;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:color .12s}
+.help-btn{position:absolute;right:18px;bottom:calc(100% + 106px);z-index:10;appearance:none;border:none;background:none;color:#cbd5e1;width:22px;height:22px;font:700 14px/1 system-ui;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:color .12s;outline:none}
 .help-btn:hover{color:#1e293b}
 .piano-wrap.controls-below .help-btn{bottom:auto;top:calc(100% + 106px)}
-.help-panel{position:fixed;z-index:40;background:#fff;border:1px solid #1e293b;padding:14px 16px;display:none;min-width:190px}
+.help-panel{position:fixed;z-index:40;background:#fff;border:1px solid #1e293b;padding:14px 16px;display:none;min-width:190px;max-height:calc(100vh - 8px);overflow-y:auto}
 .help-panel.open{display:block}
 .help-row{display:flex;gap:10px;margin-bottom:6px;align-items:baseline}
 .help-row:last-child{margin-bottom:0}
@@ -82,16 +82,16 @@ body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text)}
       <span class="toggle-label">SUSTAIN</span><span class="toggle-switch" aria-hidden="true"></span>
     </button>
     <button class="help-btn" id="helpBtn" type="button" aria-label="도움말">?</button>
-    <div class="help-panel" id="helpPanel">
-      <div class="help-row"><span class="help-key">PIANO</span><span class="help-desc">악기 선택</span></div>
-      <div class="help-row"><span class="help-key">SOUND</span><span class="help-desc">소리 ON / OFF</span></div>
-      <div class="help-row"><span class="help-key">SUSTAIN</span><span class="help-desc">건반 색 유지</span></div>
-      <div class="help-row"><span class="help-key">KEY SHAPE</span><span class="help-desc">건반 길이 전환</span></div>
-      <div class="help-row"><span class="help-key">휠 스크롤</span><span class="help-desc">건반 위치 이동</span></div>
-      <div class="help-row"><span class="help-key">Shift + 휠</span><span class="help-desc">커서 기준 확대·축소</span></div>
-      <div class="help-row"><span class="help-key">모바일</span><span class="help-desc">스와이프 · 핀치로 이동·확대</span></div>
-    </div>
     <div class="piano" id="piano"></div>
+  </div>
+  <div class="help-panel" id="helpPanel">
+    <div class="help-row"><span class="help-key">PIANO</span><span class="help-desc">악기 선택</span></div>
+    <div class="help-row"><span class="help-key">SOUND</span><span class="help-desc">소리 ON / OFF</span></div>
+    <div class="help-row"><span class="help-key">SUSTAIN</span><span class="help-desc">건반 색 유지</span></div>
+    <div class="help-row"><span class="help-key">KEY SHAPE</span><span class="help-desc">건반 길이 전환</span></div>
+    <div class="help-row"><span class="help-key">휠 스크롤</span><span class="help-desc">건반 위치 이동</span></div>
+    <div class="help-row"><span class="help-key">Shift + 휠</span><span class="help-desc">커서 기준 확대·축소</span></div>
+    <div class="help-row"><span class="help-key">모바일</span><span class="help-desc">스와이프 · 핀치로 이동·확대</span></div>
   </div>
 </div>
 <script>
@@ -534,12 +534,21 @@ helpBtn.addEventListener('click',e=>{
   const isOpen=helpPanel.classList.contains('open');
   if(isOpen){helpPanel.classList.remove('open');return;}
   const r=helpBtn.getBoundingClientRect();
-  helpPanel.style.right=(window.innerWidth-r.right)+'px';
+  helpPanel.style.right=(window.innerWidth-r.left+6)+'px';
   helpPanel.style.left='auto';
+  const wrap2=document.querySelector('.piano-wrap');
+  const isBelow=wrap2.classList.contains('controls-below');
+  const pianoTop=window.getPianoTop();
+  const pianoBottom=pianoTop+wrap2.offsetHeight;
+  const ph=200,vh=window.innerHeight;
   helpPanel.classList.add('open');
-  const ph=helpPanel.offsetHeight;
-  const below=document.querySelector('.piano-wrap').classList.contains('controls-below');
-  helpPanel.style.top=(below?r.bottom+6:r.top-ph-6)+'px';
+  if(isBelow){
+    helpPanel.style.top=Math.min(pianoBottom+4,vh-ph-4)+'px';
+    helpPanel.style.bottom='auto';
+  }else{
+    helpPanel.style.top='auto';
+    helpPanel.style.bottom=Math.min(vh-pianoTop+4,vh-ph-4)+'px';
+  }
 });
 document.addEventListener('click',()=>helpPanel.classList.remove('open'));
 document.addEventListener('keydown',e=>{if(e.key==='Escape')helpPanel.classList.remove('open');});
@@ -562,6 +571,7 @@ else initMidiAccess();
     wrap.classList.toggle('controls-below',clamped<100);
   }
   window.applyPianoAbsolute=function(top){applyOffset(top);};
+  window.getPianoTop=function(){return offsetY!==null?offsetY:wrap.getBoundingClientRect().top;};
   document.addEventListener('mouseenter',function(){window.focus();},true);
   let lastWasZoom=false;
   window.addEventListener('wheel',function(e){
