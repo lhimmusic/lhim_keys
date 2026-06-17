@@ -39,7 +39,7 @@ body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text)}
 .s-row:hover{background:#f8fafc}
 .s-row.sel{background:#fffbeb;color:#1e293b}
 
-.piano-wrap{position:relative;width:calc(var(--pw-scale,1)*100%);margin-left:var(--pw-ml,0px);background:#fff;margin-top:var(--pw-top,max(112px,calc(50vh - 56px - 4.04vw - 30px)))}
+.piano-wrap{position:relative;width:calc(var(--pw-scale,1)*100%);transform:translateX(var(--pw-tx,0px));background:#fff;margin-top:var(--pw-top,max(112px,calc(50vh - 56px - 4.04vw - 30px)))}
 .piano{position:relative;width:100%;aspect-ratio:52/4.2;overflow:hidden;background:#fff}
 .piano.tall{aspect-ratio:52/5.5}
 .piano::before{content:"";position:absolute;inset:0 0 auto 0;height:1px;background:#1e293b;z-index:5;pointer-events:none}
@@ -562,6 +562,7 @@ else initMidiAccess();
   }
   window.applyPianoAbsolute=function(top){applyOffset(top);};
   let zKeyDown=false;
+  document.addEventListener('mouseenter',function(){window.focus();},true);
   document.addEventListener('keydown',function(e){if(e.key==='z'||e.key==='Z')zKeyDown=true;});
   document.addEventListener('keyup',function(e){if(e.key==='z'||e.key==='Z')zKeyDown=false;});
   window.addEventListener('wheel',function(e){
@@ -573,9 +574,9 @@ else initMidiAccess();
       const s=Math.min(4,Math.max(1,curScale*Math.pow(0.999,delta)));
       const mx=e.clientX;
       const r=wrap.getBoundingClientRect();
-      const frac=(mx-r.left)/(curScale*vw);
-      const ml=mx-vw*(1-s)/2-frac*s*vw;
-      applyScale(s,ml);
+      const frac=(mx-r.left)/r.width;
+      const tx=mx-frac*s*vw-(vw-s*vw)/2;
+      applyScale(s,tx);
     }else{
       applyOffset(offsetY-e.deltaY);
     }
@@ -596,14 +597,14 @@ else initMidiAccess();
   appEl.addEventListener('touchend',function(){tStartY=null;},{passive:true});
 
   // 2-finger pinch: scale with origin at pinch center
-  let pinchDist0=null,pinchScale0=1,pinchCx=0,pinchFrac=0,curScale=1,curML=0;
+  let pinchDist0=null,pinchScale0=1,pinchCx=0,pinchFrac=0,curScale=1,curTx=0;
   function dist2(t){const dx=t[0].clientX-t[1].clientX,dy=t[0].clientY-t[1].clientY;return Math.sqrt(dx*dx+dy*dy);}
-  function applyScale(s,ml){
+  function applyScale(s,tx){
     curScale=Math.min(4,Math.max(1,s));
     const vw=window.innerWidth,half=(curScale-1)*vw/2;
-    curML=Math.min(half,Math.max(-half,ml));
+    curTx=Math.min(half,Math.max(-half,tx));
     wrap.style.setProperty('--pw-scale',curScale);
-    wrap.style.setProperty('--pw-ml',curML+'px');
+    wrap.style.setProperty('--pw-tx',curTx+'px');
   }
   document.addEventListener('touchstart',function(e){
     if(e.touches.length===2){
@@ -612,7 +613,7 @@ else initMidiAccess();
       pinchScale0=curScale;
       pinchCx=(e.touches[0].clientX+e.touches[1].clientX)/2;
       const r=wrap.getBoundingClientRect();
-      pinchFrac=(pinchCx-r.left)/(curScale*window.innerWidth);
+      pinchFrac=(pinchCx-r.left)/r.width;
     }
   },{passive:false});
   document.addEventListener('touchmove',function(e){
@@ -620,8 +621,8 @@ else initMidiAccess();
       e.preventDefault();
       const vw=window.innerWidth;
       const s=Math.min(4,Math.max(1,pinchScale0*(dist2(e.touches)/pinchDist0)));
-      const ml=pinchCx-vw*(1-s)/2-pinchFrac*s*vw;
-      applyScale(s,ml);
+      const tx=pinchCx-pinchFrac*s*vw-(vw-s*vw)/2;
+      applyScale(s,tx);
     }
   },{passive:false});
   document.addEventListener('touchend',function(e){
