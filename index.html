@@ -117,15 +117,18 @@ function getCtx(){
 }
 let audioUnlocked=false;
 function unlockAudio(){
-  if(audioUnlocked)return;audioUnlocked=true;
   const ctx=getCtx();
-  ctx.resume();
-  const buf=ctx.createBuffer(1,1,22050);
-  const src=ctx.createBufferSource();
-  src.buffer=buf;src.connect(ctx.destination);src.start(0);
+  if(ctx.state==='running')return;
+  ctx.resume().then(function(){
+    try{
+      const buf=ctx.createBuffer(1,1,22050);
+      const src=ctx.createBufferSource();
+      src.buffer=buf;src.connect(ctx.destination);src.start(0);
+    }catch(ex){}
+  });
 }
 ['touchstart','touchend','pointerdown','click'].forEach(ev=>
-  document.addEventListener(ev,unlockAudio,{passive:true})
+  document.addEventListener(ev,unlockAudio,{passive:true,capture:true})
 );
 
 function getMaster(ctx){
@@ -558,25 +561,25 @@ else initMidiAccess();
     wrap.classList.toggle('controls-below',clamped<100);
   }
   window.applyPianoAbsolute=function(top){applyOffset(top);};
+  let zKeyDown=false;
+  document.addEventListener('keydown',function(e){if(e.key==='z'||e.key==='Z')zKeyDown=true;});
+  document.addEventListener('keyup',function(e){if(e.key==='z'||e.key==='Z')zKeyDown=false;});
   window.addEventListener('wheel',function(e){
     e.preventDefault();
     if(offsetY===null)offsetY=getDefaultTop();
-    if(e.getModifierState&&e.getModifierState('z')||zKeyDown){
+    if(zKeyDown){
       const vw=window.innerWidth;
-      const factor=e.deltaY<0?1.1:1/1.1;
-      const s=Math.min(4,Math.max(1,curScale*factor));
+      const delta=e.deltaMode===1?e.deltaY*30:e.deltaMode===2?e.deltaY*300:e.deltaY;
+      const s=Math.min(4,Math.max(1,curScale*Math.pow(0.999,delta)));
       const mx=e.clientX;
       const r=wrap.getBoundingClientRect();
-      const frac=(mx-r.left)/r.width;
-      const ml=mx-frac*s*vw;
+      const frac=(mx-r.left)/(curScale*vw);
+      const ml=mx-vw*(1-s)/2-frac*s*vw;
       applyScale(s,ml);
     }else{
       applyOffset(offsetY-e.deltaY);
     }
   },{passive:false});
-  let zKeyDown=false;
-  document.addEventListener('keydown',function(e){if(e.key==='z'||e.key==='Z')zKeyDown=true;});
-  document.addEventListener('keyup',function(e){if(e.key==='z'||e.key==='Z')zKeyDown=false;});
   // 1-finger drag: position
   const appEl=document.querySelector('.app');
   let tStartY=null,tOffsetStart=null;
@@ -593,12 +596,12 @@ else initMidiAccess();
   appEl.addEventListener('touchend',function(){tStartY=null;},{passive:true});
 
   // 2-finger pinch: scale with origin at pinch center
-  let pinchDist0=null,pinchScale0=1,pinchML0=0,pinchFrac=0,curScale=1,curML=0;
+  let pinchDist0=null,pinchScale0=1,pinchCx=0,pinchFrac=0,curScale=1,curML=0;
   function dist2(t){const dx=t[0].clientX-t[1].clientX,dy=t[0].clientY-t[1].clientY;return Math.sqrt(dx*dx+dy*dy);}
   function applyScale(s,ml){
     curScale=Math.min(4,Math.max(1,s));
-    const maxML=-(curScale-1)*window.innerWidth;
-    curML=Math.min(0,Math.max(maxML,ml));
+    const vw=window.innerWidth,half=(curScale-1)*vw/2;
+    curML=Math.min(half,Math.max(-half,ml));
     wrap.style.setProperty('--pw-scale',curScale);
     wrap.style.setProperty('--pw-ml',curML+'px');
   }
@@ -607,19 +610,17 @@ else initMidiAccess();
       tStartY=null;
       pinchDist0=dist2(e.touches);
       pinchScale0=curScale;
-      pinchML0=curML;
-      const cx=(e.touches[0].clientX+e.touches[1].clientX)/2;
-      const wRect=wrap.getBoundingClientRect();
-      pinchFrac=(cx-wRect.left)/wRect.width;
+      pinchCx=(e.touches[0].clientX+e.touches[1].clientX)/2;
+      const r=wrap.getBoundingClientRect();
+      pinchFrac=(pinchCx-r.left)/(curScale*window.innerWidth);
     }
   },{passive:false});
   document.addEventListener('touchmove',function(e){
     if(e.touches.length===2&&pinchDist0){
       e.preventDefault();
+      const vw=window.innerWidth;
       const s=Math.min(4,Math.max(1,pinchScale0*(dist2(e.touches)/pinchDist0)));
-      const cx=(e.touches[0].clientX+e.touches[1].clientX)/2;
-      const newW=s*window.innerWidth;
-      const ml=cx-pinchFrac*newW;
+      const ml=pinchCx-vw*(1-s)/2-pinchFrac*s*vw;
       applyScale(s,ml);
     }
   },{passive:false});
