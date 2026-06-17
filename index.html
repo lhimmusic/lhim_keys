@@ -8,6 +8,7 @@
 :root{--bg:#ffffff;--text:#121826;--active:#fbbf24}
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden}
+.app{touch-action:none}
 body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text)}
 .app{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
 .midi-notice{display:none;width:100%;background:#fef3c7;border-bottom:1px solid #f59e0b;color:#92400e;font:500 11px/1.4 system-ui,sans-serif;text-align:center;padding:7px 16px}
@@ -17,6 +18,10 @@ body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text)}
 .keyshape-button{right:18px;bottom:calc(100% + 10px)}
 .sustain-button{right:18px;bottom:calc(100% + 34px)}
 .sound-button{right:18px;bottom:calc(100% + 58px)}
+.piano-wrap.controls-below .keyshape-button{bottom:auto;top:calc(100% + 10px)}
+.piano-wrap.controls-below .sustain-button{bottom:auto;top:calc(100% + 34px)}
+.piano-wrap.controls-below .sound-button{bottom:auto;top:calc(100% + 58px)}
+.piano-wrap.controls-below .sound-pick-wrap{bottom:auto;top:calc(100% + 82px)}
 .toggle-label{white-space:nowrap;color:#94a3b8;display:inline-block;width:110px;text-align:right;margin-right:8px}
 .toggle-button.active .toggle-label{color:#1e293b}
 .toggle-switch{position:relative;width:26px;height:14px;flex:0 0 auto;border-radius:999px;background:#cbd5e1;transition:background .12s ease}
@@ -35,7 +40,8 @@ body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text)}
 .s-row:hover{background:#f8fafc}
 .s-row.sel{background:#fffbeb;color:#1e293b}
 
-.piano-wrap{position:relative;width:100%;background:#fff;margin-top:max(112px,calc(50vh - 56px - 4.04vw - 85px))}
+.piano-wrap{position:relative;width:var(--pw-width,100%);background:#fff;margin-top:var(--pw-top,max(112px,calc(50vh - 56px - 4.04vw - 60px)));transition:margin-top 0s}
+.app{overflow:hidden}
 .piano{position:relative;width:100%;aspect-ratio:52/4.2;overflow:hidden;background:#fff}
 .piano.tall{aspect-ratio:52/5.5}
 .piano::before{content:"";position:absolute;inset:0 0 auto 0;height:1px;background:#1e293b;z-index:5;pointer-events:none}
@@ -45,6 +51,18 @@ body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text)}
 .black{z-index:2;background:#1e293b;border:1px solid #1e293b;border-top:none;height:62%}
 .piano.tall .black{height:65%}
 .white.active,.black.active{background:var(--active)!important;box-shadow:none!important}
+
+.help-btn{position:absolute;right:18px;bottom:calc(100% + 106px);z-index:10;appearance:none;border:none;background:none;color:#cbd5e1;width:22px;height:22px;font:700 14px/1 system-ui;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:color .12s}
+.help-btn:hover{color:#1e293b}
+.piano-wrap.controls-below .help-btn{bottom:auto;top:calc(100% + 106px)}
+
+.help-panel{position:absolute;right:18px;bottom:calc(100% + 130px);z-index:40;background:#fff;border:1px solid #1e293b;padding:14px 16px;display:none;min-width:190px}
+.help-panel.open{display:block}
+.piano-wrap.controls-below .help-panel{bottom:auto;top:calc(100% + 130px)}
+.help-row{display:flex;gap:10px;margin-bottom:6px;align-items:baseline}
+.help-row:last-child{margin-bottom:0}
+.help-key{font:700 11px/1 system-ui;letter-spacing:0.04em;color:#1e293b;white-space:nowrap;min-width:72px}
+.help-desc{font:400 11px/1.5 system-ui;color:#94a3b8}
 </style>
 </head>
 <body>
@@ -72,6 +90,17 @@ body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text)}
       <span class="toggle-label" id="sustainLabel">SUSTAIN</span>
       <span class="toggle-switch" aria-hidden="true"></span>
     </button>
+
+    <button class="help-btn" id="helpBtn" type="button" aria-label="도움말">?</button>
+
+    <div class="help-panel" id="helpPanel">
+      <div class="help-row"><span class="help-key">PIANO</span><span class="help-desc">악기 선택</span></div>
+      <div class="help-row"><span class="help-key">SOUND</span><span class="help-desc">소리 ON / OFF</span></div>
+      <div class="help-row"><span class="help-key">SUSTAIN</span><span class="help-desc">건반 색 유지</span></div>
+      <div class="help-row"><span class="help-key">KEY SHAPE</span><span class="help-desc">건반 길이 전환</span></div>
+      <div class="help-row"><span class="help-key">휠 스크롤</span><span class="help-desc">건반 위치 이동</span></div>
+      <div class="help-row"><span class="help-key">MIDI</span><span class="help-desc">Chrome 자동 인식</span></div>
+    </div>
 
     <div class="piano" id="piano"></div>
   </div>
@@ -486,9 +515,44 @@ async function initMidiAccess(){
   }catch(e){midiInitStarted=false;}
 }
 
+const helpBtn=document.getElementById('helpBtn');
+const helpPanel=document.getElementById('helpPanel');
+helpBtn.addEventListener('click',e=>{e.stopPropagation();helpPanel.classList.toggle('open');});
+document.addEventListener('click',()=>helpPanel.classList.remove('open'));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')helpPanel.classList.remove('open');});
+
 buildPiano();
 if(!navigator.requestMIDIAccess){document.getElementById('midiNotice').classList.add('visible');}
 else{initMidiAccess();}
+
+(function(){
+  const wrap=document.querySelector('.piano-wrap');
+  const app=document.querySelector('.app');
+  let offsetY=null;
+  function clamp(v,min,max){return Math.min(max,Math.max(min,v));}
+  function getDefaultTop(){
+    const vw=window.innerWidth,vh=window.innerHeight;
+    const pianoH=wrap.offsetHeight;
+    const def=Math.max(112,vh/2-56-(4.04*vw/100)-85);
+    return def;
+  }
+  const CONTROLS_HEIGHT=100;
+  function applyOffset(v){
+    const vh=window.innerHeight;
+    const pianoH=wrap.offsetHeight;
+    const max=vh-pianoH;
+    const min=0;
+    const clamped=clamp(v,min,Math.max(min,max));
+    wrap.style.setProperty('--pw-top',clamped+'px');
+    offsetY=clamped;
+    wrap.classList.toggle('controls-below',clamped<CONTROLS_HEIGHT);
+  }
+  window.addEventListener('wheel',function(e){
+    e.preventDefault();
+    if(offsetY===null)offsetY=getDefaultTop();
+    applyOffset(offsetY-e.deltaY);
+  },{passive:false});
+})();
 </script>
 </body>
 </html>
