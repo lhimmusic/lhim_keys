@@ -128,6 +128,13 @@ function getCtx(){
   if(audioCtx.state==='suspended')audioCtx.resume();
   return audioCtx;
 }
+function unlockAudio(){
+  getCtx();
+  document.removeEventListener('touchstart',unlockAudio);
+  document.removeEventListener('pointerdown',unlockAudio);
+}
+document.addEventListener('touchstart',unlockAudio,{once:true,passive:true});
+document.addEventListener('pointerdown',unlockAudio,{once:true,passive:true});
 function getMaster(ctx){
   if(!masterNode){
     const comp=ctx.createDynamicsCompressor();
